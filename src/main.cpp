@@ -10,7 +10,10 @@ const int pipRadius = 10;
 const int racketWidth = 20;
 
 int pipX = width/2, pipY = height/2;
-int pipXSpeed = 200, pipYSpeed = 200; // pixels per second
+
+int pipStartSpeed = 300; // pixels per second
+
+int pipXSpeed, pipYSpeed;
 
 int racketSpeed = 200;
 
@@ -21,21 +24,25 @@ enum RacketPosition {LEFT, RIGHT};
 struct Racket {
     int y;
     int size;
+    int halfSize;
+    int speed;
     float r, g, b;
     RacketPosition position;
     
-    Racket(RacketPosition position, int y, int size, float r, float g, float b) {
+    Racket(RacketPosition position, int y, int size, int speed, float r, float g, float b) {
         this->position = position;
+        this->speed = speed;
         this->y = y;
         this->size = size;
+        this->halfSize = size/2;
         this->r = r;
         this->g = g;
         this->b = b;
     }
 };
 
-Racket racket1 = Racket(LEFT, height/2, 120, 1, 1, 0);
-Racket racket2 = Racket(RIGHT, height/2, 120, 0, 1, 1);
+Racket racket1 = Racket(LEFT, height/2, 120, 0, 1, 1, 0);
+Racket racket2 = Racket(RIGHT, height/2, 120, 0, 0, 1, 1);
 
 
 void reshape(GLFWwindow* window, int width, int height ) {
@@ -98,13 +105,18 @@ void drawRacket(Racket racket) {
     }
     
     glBegin(GL_QUADS);
-        glVertex2d(racketLeft, racket.y + racket.size/2);
-        glVertex2d(racketLeft + racketWidth, racket.y + racket.size/2);
-        glVertex2d(racketLeft + racketWidth, racket.y - racket.size/2);
-        glVertex2d(racketLeft, racket.y - racket.size/2);
+        glVertex2d(racketLeft, racket.y + racket.halfSize);
+        glVertex2d(racketLeft + racketWidth, racket.y + racket.halfSize);
+        glVertex2d(racketLeft + racketWidth, racket.y - racket.halfSize);
+        glVertex2d(racketLeft, racket.y - racket.halfSize);
     glEnd();
     
     glPopMatrix();
+}
+
+void resetPipSpeed() {
+    pipXSpeed = (pipStartSpeed + 25 - (rand() % 50)) * (rand()%2 > 0 ? 1 : -1);
+    pipYSpeed = (pipStartSpeed + 25 - (rand() % 50)) * (rand()%2 > 0 ? 1 : -1);
 }
 
 int guessWherePipIsGoing() {
@@ -115,44 +127,53 @@ int guessWherePipIsGoing() {
         distanceToWall = pipX - (pipRadius * 2);
     }
     float angle = atan(pipYSpeed / abs(pipXSpeed));
-    //cout << "with an angle of atan(" << pipYSpeed/pipXSpeed <<  ")=" << angle << endl;
-    //return pipY + (tan(angle) * distanceToWall);
-    //cout << "predicted y: " << (distanceToWall / abs(pipXSpeed)) * pipYSpeed << endl;
+    int guess = pipY + (tan(angle) * distanceToWall);
     
-    cout << "predicted y: " << pipY + (tan(angle) * distanceToWall) << endl;
+    cout << "predicted y: " << guess << endl;
     
-    return pipY + (tan(angle) * distanceToWall);
+    if (guess > height) {
+        guess = height*3/4;
+    } else if (guess < 0) {
+        guess = height/4;
+    }
+    
+    return guess;
 }
 
 void moveRacketToY(Racket & racket, int timeDiff) {
-    int y = height/2;
+    int targetY = height/2;
+    
+    racket.speed = 0;
+    
     if (racket.position == RIGHT && pipXSpeed > 0) {
-        y = guessWherePipIsGoing();
+        targetY = guessWherePipIsGoing();
     } else if (racket.position == LEFT && pipXSpeed <= 0) {
-        y = guessWherePipIsGoing();
+        targetY = guessWherePipIsGoing();
     }
     
-    if(racket.y < y) {
-        if (height - racket.y <= racket.size / 2) {
-            racket.y = height - racket.size / 2;
-        } else if (y - racket.y > (racketSpeed * timeDiff) / 1000) {
+    if(racket.y < targetY) {
+        if (height - racket.y <= racket.halfSize) {
+            racket.y = height - racket.halfSize;
+        } else if (targetY - racket.y > (racketSpeed * timeDiff) / 1000) {
             racket.y += (racketSpeed * timeDiff) / 1000;
+            racket.speed += racketSpeed;
         } else {
-            racket.y = y;
+            racket.y = targetY;
         }
-    } else if(racket.y > y) {
-        if (racket.y <= racket.size / 2) {
-            racket.y = racket.size / 2;
-        } else if (racket.y - y > (racketSpeed * timeDiff) / 1000) {
+    } else if(racket.y > targetY) {
+        if (racket.y <= racket.halfSize) {
+            racket.y = racket.halfSize;
+        } else if (racket.y - targetY > (racketSpeed * timeDiff) / 1000) {
             racket.y -= (racketSpeed * timeDiff) / 1000;
+            racket.speed -= racketSpeed;
         } else {
-            racket.y = y;
+            racket.y = targetY;
         }
     }
 }
 
 bool collidesWithRacket(Racket racket) {
-    if (pipY > racket.y + racket.size/2 || pipY < racket.y - racket.size/2)
+    if (pipY > racket.y + racket.halfSize || pipY < racket.y - racket.halfSize)
         return false;
     
     switch(racket.position) {
@@ -167,6 +188,7 @@ bool collidesWithRacket(Racket racket) {
             break;
     }
     
+    pipYSpeed += racket.speed;
     return true;
 
 }
@@ -190,10 +212,13 @@ void recalculateBall(int timeDiff) {
         if (pipX > width - pipRadius) pipX = width - pipRadius;
         pipX = width/2;
         pipY = height/2;
+        resetPipSpeed();
     }
 }
 
 int main(void) {
+    srand(time(NULL));
+    
     GLFWwindow* window;
     
     /* Initialize the library */
@@ -219,6 +244,7 @@ int main(void) {
     
     glfwSetWindowSizeCallback(window, reshape);
     
+    resetPipSpeed();
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
