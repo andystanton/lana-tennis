@@ -42,8 +42,8 @@ struct Racket {
     }
 };
 
-Racket racket1 = Racket(LEFT, height/2, 120, 0, 1, 1, 0);
-Racket racket2 = Racket(RIGHT, height/2, 120, 0, 0, 1, 1);
+Racket racket1 = Racket(LEFT, height/2, 60, 0, 1, 1, 0);
+Racket racket2 = Racket(RIGHT, height/2, 60, 0, 0, 1, 1);
 
 
 void reshape(GLFWwindow* window, int width, int height ) {
