@@ -111,17 +111,17 @@ int guessWherePipIsGoing() {
     int distanceToWall = 0;
     if (pipXSpeed > 0) {
         distanceToWall = width - (pipRadius * 2) - pipX;
-        cout << "to me: " << distanceToWall << endl;
     } else {
         distanceToWall = pipX - (pipRadius * 2);
-        cout << "to you: " << distanceToWall << endl;
     }
-    //float angle = atan(pipYSpeed / pipXSpeed);
+    float angle = atan(pipYSpeed / abs(pipXSpeed));
     //cout << "with an angle of atan(" << pipYSpeed/pipXSpeed <<  ")=" << angle << endl;
     //return pipY + (tan(angle) * distanceToWall);
     //cout << "predicted y: " << (distanceToWall / abs(pipXSpeed)) * pipYSpeed << endl;
     
-    return pipY + (distanceToWall / pipXSpeed) * pipYSpeed;
+    cout << "predicted y: " << pipY + (tan(angle) * distanceToWall) << endl;
+    
+    return pipY + (tan(angle) * distanceToWall);
 }
 
 void moveRacketToY(Racket & racket, int timeDiff) {
