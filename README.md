@@ -2,8 +2,6 @@
 
 An implementation of the classic game Pong. It is written in C++ and uses the [GLFW library](http://www.glfw.org) and [CMake](http://www.cmake.org/) to speed up initial project setup.
 
-![](http://andystanton.github.io/assets/images/readme.md/glfw-skeleton/glfw-skeleton.png)
-
 ## Requirements
 
 * A C++ compiler
