@@ -39,5 +39,5 @@ For more information on CMake's project generators and a full list of supported 
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=78twd4Xdnxc
 " target="_blank"><img src="http://img.youtube.com/vi/78twd4Xdnxc/0.jpg" 
-alt="Lana Tennis AI vs. AI" width="240" height="180" border="10" /></a>
+alt="Lana Tennis AI vs. AI" width="320" height="240" border="10" /></a>
 
