@@ -42,8 +42,8 @@ struct Racket {
     }
 };
 
-Racket racket1 = Racket(LEFT, height/2, 60, 0, 1, 1, 0);
-Racket racket2 = Racket(RIGHT, height/2, 60, 0, 0, 1, 1);
+Racket racket1 = Racket(LEFT, height/2, 60, 0, 0.945, 0.757, 0.364);
+Racket racket2 = Racket(RIGHT, height/2, 60, 0, 0.035, 0.639, 0.678);
 
 
 void reshape(GLFWwindow* window, int width, int height ) {
@@ -61,7 +61,7 @@ void reshape(GLFWwindow* window, int width, int height ) {
 void drawNet() {
     glPushMatrix();
     
-    glColor3f(0, 0, 1);
+    glColor3f(1, 0.192, 0.455);
     glLineWidth(5);
     
     glBegin(GL_LINES);
@@ -75,7 +75,7 @@ void drawNet() {
 void drawBall() {
     glPushMatrix();
     
-    glColor3f(1.0, 0.0, 0.0);
+    glColor3f(0.580, 0.733, 0.408);
     
     glBegin(GL_QUADS);
         glVertex2d(pipX - pipRadius, pipY + pipRadius);
@@ -251,6 +251,7 @@ int main(void) {
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.455, 0.1, 0.322, 0.f);
         
         int newTime = floor(glfwGetTime() * 1000);
         if (newTime - lastTime > 10) {
