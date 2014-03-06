@@ -48,10 +48,10 @@ void drawBall() {
     glColor3f(0.580, 0.733, 0.408);
     
     glBegin(GL_QUADS);
-        glVertex2d(pip.x - pip.radius, pip.y + pip.radius);
-        glVertex2d(pip.x + pip.radius, pip.y + pip.radius);
-        glVertex2d(pip.x + pip.radius, pip.y - pip.radius);
-        glVertex2d(pip.x - pip.radius, pip.y - pip.radius);
+        glVertex2d(pip.x - System::Pip::radius, pip.y + System::Pip::radius);
+        glVertex2d(pip.x + System::Pip::radius, pip.y + System::Pip::radius);
+        glVertex2d(pip.x + System::Pip::radius, pip.y - System::Pip::radius);
+        glVertex2d(pip.x - System::Pip::radius, pip.y - System::Pip::radius);
     glEnd();
     
     
@@ -88,9 +88,9 @@ void drawRacket(System::Racket racket) {
 int guessWherePipIsGoing() {
     int distanceToWall = 0;
     if (pip.xSpeed > 0) {
-        distanceToWall = width - (pip.radius * 2) - pip.x;
+        distanceToWall = width - (System::Pip::radius * 2) - pip.x;
     } else {
-        distanceToWall = pip.x - (pip.radius * 2);
+        distanceToWall = pip.x - (System::Pip::radius * 2);
     }
     float angle = atan(pip.ySpeed / abs(pip.xSpeed));
     int guess = pip.y + (tan(angle) * distanceToWall);
@@ -163,19 +163,19 @@ void recalculateBall(int timeDiff) {
     pip.x += (pip.xSpeed * timeDiff)/1000;
     pip.y += (pip.ySpeed * timeDiff)/1000;
     
-    if (pip.y < pip.radius || pip.y > height - pip.radius) {
-        if (pip.y < pip.radius) pip.y = pip.radius;
-        if (pip.y > height - pip.radius) pip.y = height - pip.radius;
+    if (pip.y < System::Pip::radius || pip.y > height - System::Pip::radius) {
+        if (pip.y < System::Pip::radius) pip.y = System::Pip::radius;
+        if (pip.y > height - System::Pip::radius) pip.y = height - System::Pip::radius;
         pip.ySpeed = -pip.ySpeed;
     }
     
     if (collidesWithRacket(racket1) || collidesWithRacket(racket2)) {
-        if (pip.x < System::Racket::width + pip.radius) pip.x = System::Racket::width + pip.radius;
-        if (pip.x > width - System::Racket::width - pip.radius) pip.x = width - System::Racket::width - pip.radius;
+        if (pip.x < System::Racket::width + System::Pip::radius) pip.x = System::Racket::width + System::Pip::radius;
+        if (pip.x > width - System::Racket::width - System::Pip::radius) pip.x = width - System::Racket::width - System::Pip::radius;
         pip.xSpeed = -pip.xSpeed;
-    } else if (pip.x < pip.radius || pip.x > width - pip.radius) {
-        if (pip.x < pip.radius) pip.x = pip.radius;
-        if (pip.x > width - pip.radius) pip.x = width - pip.radius;
+    } else if (pip.x < System::Pip::radius || pip.x > width - System::Pip::radius) {
+        if (pip.x < System::Pip::radius) pip.x = System::Pip::radius;
+        if (pip.x > width - System::Pip::radius) pip.x = width - System::Pip::radius;
         pip.x = width/2;
         pip.y = height/2;
         pip.randomiseSpeed();

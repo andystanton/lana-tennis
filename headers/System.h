@@ -7,10 +7,10 @@ class System {
 public:
     class Pip {
     public:
-        const int startSpeed = 300; // pixels per second
-        const int radius = 10;
+        static const int startSpeed; // pixels per second
+        static const int radius;
         int x, y;
-        int xSpeed = startSpeed, ySpeed = startSpeed;
+        int xSpeed, ySpeed;
         
         Pip(int x, int y);
     
@@ -21,7 +21,7 @@ public:
     
     struct Racket {
         static const int width;
-        const int maxSpeed = 200;
+        static const int maxSpeed;
         int y;
         int size;
         int halfSize;
