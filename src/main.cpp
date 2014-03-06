@@ -4,47 +4,17 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "../headers/System.h"
+
 using namespace std;
 
 const int width=640, height=480;
-const int pipRadius = 10;
-const int racketWidth = 20;
-
-int pipX = width/2, pipY = height/2;
-
-int pipStartSpeed = 300; // pixels per second
-
-int pipXSpeed, pipYSpeed;
-
-int racketSpeed = 200;
 
 int lastTime = 0;
 
-enum RacketPosition {LEFT, RIGHT};
-
-struct Racket {
-    int y;
-    int size;
-    int halfSize;
-    int speed;
-    float r, g, b;
-    RacketPosition position;
-    
-    Racket(RacketPosition position, int y, int size, int speed, float r, float g, float b) {
-        this->position = position;
-        this->speed = speed;
-        this->y = y;
-        this->size = size;
-        this->halfSize = size/2;
-        this->r = r;
-        this->g = g;
-        this->b = b;
-    }
-};
-
-Racket racket1 = Racket(LEFT, height/2, 60, 0, 0.945, 0.757, 0.364);
-Racket racket2 = Racket(RIGHT, height/2, 60, 0, 0.035, 0.639, 0.678);
-
+System::Racket racket1 = System::Racket(System::LEFT, height/2, 60, 0, 0.945, 0.757, 0.364);
+System::Racket racket2 = System::Racket(System::RIGHT, height/2, 60, 0, 0.035, 0.639, 0.678);
+System::Pip pip = System::Pip(width/2, height/2);
 
 void reshape(GLFWwindow* window, int width, int height ) {
     int w, h;
@@ -78,17 +48,17 @@ void drawBall() {
     glColor3f(0.580, 0.733, 0.408);
     
     glBegin(GL_QUADS);
-        glVertex2d(pipX - pipRadius, pipY + pipRadius);
-        glVertex2d(pipX + pipRadius, pipY + pipRadius);
-        glVertex2d(pipX + pipRadius, pipY - pipRadius);
-        glVertex2d(pipX - pipRadius, pipY - pipRadius);
+        glVertex2d(pip.x - pip.radius, pip.y + pip.radius);
+        glVertex2d(pip.x + pip.radius, pip.y + pip.radius);
+        glVertex2d(pip.x + pip.radius, pip.y - pip.radius);
+        glVertex2d(pip.x - pip.radius, pip.y - pip.radius);
     glEnd();
     
     
     glPopMatrix();
 }
 
-void drawRacket(Racket racket) {
+void drawRacket(System::Racket racket) {
     glPushMatrix();
     
     glColor3f(racket.r, racket.g, racket.b);
@@ -96,10 +66,10 @@ void drawRacket(Racket racket) {
     int racketLeft;
     
     switch(racket.position) {
-        case RIGHT:
-            racketLeft = width - racketWidth;
+        case System::RIGHT:
+            racketLeft = width - System::Racket::width;
             break;
-        case LEFT:
+        case System::LEFT:
             racketLeft = 0;
         default:
             break;
@@ -107,28 +77,23 @@ void drawRacket(Racket racket) {
     
     glBegin(GL_QUADS);
         glVertex2d(racketLeft, racket.y + racket.halfSize);
-        glVertex2d(racketLeft + racketWidth, racket.y + racket.halfSize);
-        glVertex2d(racketLeft + racketWidth, racket.y - racket.halfSize);
+        glVertex2d(racketLeft + System::Racket::width, racket.y + racket.halfSize);
+        glVertex2d(racketLeft + System::Racket::width, racket.y - racket.halfSize);
         glVertex2d(racketLeft, racket.y - racket.halfSize);
     glEnd();
     
     glPopMatrix();
 }
 
-void resetPipSpeed() {
-    pipXSpeed = (pipStartSpeed + 25 - (rand() % 50)) * (rand()%2 > 0 ? 1 : -1);
-    pipYSpeed = (pipStartSpeed + 25 - (rand() % 50)) * (rand()%2 > 0 ? 1 : -1);
-}
-
 int guessWherePipIsGoing() {
     int distanceToWall = 0;
-    if (pipXSpeed > 0) {
-        distanceToWall = width - (pipRadius * 2) - pipX;
+    if (pip.xSpeed > 0) {
+        distanceToWall = width - (pip.radius * 2) - pip.x;
     } else {
-        distanceToWall = pipX - (pipRadius * 2);
+        distanceToWall = pip.x - (pip.radius * 2);
     }
-    float angle = atan(pipYSpeed / abs(pipXSpeed));
-    int guess = pipY + (tan(angle) * distanceToWall);
+    float angle = atan(pip.ySpeed / abs(pip.xSpeed));
+    int guess = pip.y + (tan(angle) * distanceToWall);
     
     cout << "predicted y: " << guess << endl;
     
@@ -141,79 +106,79 @@ int guessWherePipIsGoing() {
     return guess;
 }
 
-void moveRacketToY(Racket & racket, int timeDiff) {
+void moveRacketToY(System::Racket & racket, int timeDiff) {
     int targetY = height/2;
     
     racket.speed = 0;
     
-    if (racket.position == RIGHT && pipXSpeed > 0) {
+    if (racket.position == System::RIGHT && pip.xSpeed > 0) {
         targetY = guessWherePipIsGoing();
-    } else if (racket.position == LEFT && pipXSpeed <= 0) {
+    } else if (racket.position == System::LEFT && pip.xSpeed <= 0) {
         targetY = guessWherePipIsGoing();
     }
     
     if(racket.y < targetY) {
         if (height - racket.y <= racket.halfSize) {
             racket.y = height - racket.halfSize;
-        } else if (targetY - racket.y > (racketSpeed * timeDiff) / 1000) {
-            racket.y += (racketSpeed * timeDiff) / 1000;
-            racket.speed += racketSpeed;
+        } else if (targetY - racket.y > (racket.maxSpeed * timeDiff) / 1000) {
+            racket.y += (racket.maxSpeed * timeDiff) / 1000;
+            racket.speed += racket.maxSpeed;
         } else {
             racket.y = targetY;
         }
     } else if(racket.y > targetY) {
         if (racket.y <= racket.halfSize) {
             racket.y = racket.halfSize;
-        } else if (racket.y - targetY > (racketSpeed * timeDiff) / 1000) {
-            racket.y -= (racketSpeed * timeDiff) / 1000;
-            racket.speed -= racketSpeed;
+        } else if (racket.y - targetY > (racket.maxSpeed * timeDiff) / 1000) {
+            racket.y -= (racket.maxSpeed * timeDiff) / 1000;
+            racket.speed -= racket.maxSpeed;
         } else {
             racket.y = targetY;
         }
     }
 }
 
-bool collidesWithRacket(Racket racket) {
-    if (pipY > racket.y + racket.halfSize || pipY < racket.y - racket.halfSize)
+bool collidesWithRacket(System::Racket racket) {
+    if (pip.y > racket.y + racket.halfSize || pip.y < racket.y - racket.halfSize)
         return false;
     
     switch(racket.position) {
-        case RIGHT:
-            if (pipX < width - racketWidth)
+        case System::RIGHT:
+            if (pip.x < width - System::Racket::width)
                 return false;
             break;
-        case LEFT:
-            if (pipX > racketWidth)
+        case System::LEFT:
+            if (pip.x > System::Racket::width)
                 return false;
         default:
             break;
     }
     
-    pipYSpeed += racket.speed;
+    pip.ySpeed += racket.speed;
     return true;
 
 }
 
 void recalculateBall(int timeDiff) {
-    pipX += (pipXSpeed * timeDiff)/1000;
-    pipY += (pipYSpeed * timeDiff)/1000;
+    pip.x += (pip.xSpeed * timeDiff)/1000;
+    pip.y += (pip.ySpeed * timeDiff)/1000;
     
-    if (pipY < pipRadius || pipY > height - pipRadius) {
-        if (pipY < pipRadius) pipY = pipRadius;
-        if (pipY > height - pipRadius) pipY = height - pipRadius;
-        pipYSpeed = -pipYSpeed;
+    if (pip.y < pip.radius || pip.y > height - pip.radius) {
+        if (pip.y < pip.radius) pip.y = pip.radius;
+        if (pip.y > height - pip.radius) pip.y = height - pip.radius;
+        pip.ySpeed = -pip.ySpeed;
     }
     
     if (collidesWithRacket(racket1) || collidesWithRacket(racket2)) {
-        if (pipX < racketWidth + pipRadius) pipX = racketWidth + pipRadius;
-        if (pipX > width - racketWidth - pipRadius) pipX = width - racketWidth - pipRadius;
-        pipXSpeed = -pipXSpeed;
-    } else if (pipX < pipRadius || pipX > width - pipRadius) {
-        if (pipX < pipRadius) pipX = pipRadius;
-        if (pipX > width - pipRadius) pipX = width - pipRadius;
-        pipX = width/2;
-        pipY = height/2;
-        resetPipSpeed();
+        if (pip.x < System::Racket::width + pip.radius) pip.x = System::Racket::width + pip.radius;
+        if (pip.x > width - System::Racket::width - pip.radius) pip.x = width - System::Racket::width - pip.radius;
+        pip.xSpeed = -pip.xSpeed;
+    } else if (pip.x < pip.radius || pip.x > width - pip.radius) {
+        if (pip.x < pip.radius) pip.x = pip.radius;
+        if (pip.x > width - pip.radius) pip.x = width - pip.radius;
+        pip.x = width/2;
+        pip.y = height/2;
+        pip.randomiseSpeed();
     }
 }
 
@@ -244,8 +209,6 @@ int main(void) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glfwSetWindowSizeCallback(window, reshape);
-    
-    resetPipSpeed();
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
