@@ -4,8 +4,23 @@ project(lana-tennis)
 set(lana-tennis_VERSION_MAJOR 1)
 set(lana-tennis_VERSION_MINOR 0)
 
+set (
+    HEADERS
+    headers/System.h
+)
+
+set (
+    SOURCES
+    src/main.cpp
+    src/System.cpp
+)
+
 # lana-tennis
-add_executable(lana-tennis src/main.cpp)
+add_executable(
+    lana-tennis
+    ${HEADERS}
+    ${SOURCES}
+)
 
 # enable testing - not currently in use but required for 'make test' that travis-ci runs.
 enable_testing()
