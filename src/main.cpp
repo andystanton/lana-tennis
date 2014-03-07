@@ -12,9 +12,7 @@ const int width=640, height=480;
 
 int lastTime = 0;
 
-System::Racket racket1 = System::Racket(System::LEFT, height/2, 60, 0, 0.945, 0.757, 0.364);
-System::Racket racket2 = System::Racket(System::RIGHT, height/2, 60, 0, 0.035, 0.639, 0.678);
-System::Pip pip = System::Pip(width/2, height/2);
+System sys = System(width, height);
 
 void reshape(GLFWwindow* window, int width, int height ) {
     int w, h;
@@ -46,6 +44,8 @@ void drawBall() {
     glPushMatrix();
     
     glColor3f(0.580, 0.733, 0.408);
+    
+    System::Pip pip = sys.getPip();
     
     glBegin(GL_QUADS);
         glVertex2d(pip.x - System::Pip::radius, pip.y + System::Pip::radius);
@@ -85,102 +85,6 @@ void drawRacket(System::Racket racket) {
     glPopMatrix();
 }
 
-int guessWherePipIsGoing() {
-    int distanceToWall = 0;
-    if (pip.xSpeed > 0) {
-        distanceToWall = width - (System::Pip::radius * 2) - pip.x;
-    } else {
-        distanceToWall = pip.x - (System::Pip::radius * 2);
-    }
-    float angle = atan(pip.ySpeed / abs(pip.xSpeed));
-    int guess = pip.y + (tan(angle) * distanceToWall);
-    
-    cout << "predicted y: " << guess << endl;
-    
-    if (guess > height) {
-        guess = height*3/4;
-    } else if (guess < 0) {
-        guess = height/4;
-    }
-    
-    return guess;
-}
-
-void moveRacketToY(System::Racket & racket, int timeDiff) {
-    int targetY = height/2;
-    
-    racket.speed = 0;
-    
-    if (racket.position == System::RIGHT && pip.xSpeed > 0) {
-        targetY = guessWherePipIsGoing();
-    } else if (racket.position == System::LEFT && pip.xSpeed <= 0) {
-        targetY = guessWherePipIsGoing();
-    }
-    
-    if(racket.y < targetY) {
-        if (height - racket.y <= racket.halfSize) {
-            racket.y = height - racket.halfSize;
-        } else if (targetY - racket.y > (racket.maxSpeed * timeDiff) / 1000) {
-            racket.y += (racket.maxSpeed * timeDiff) / 1000;
-            racket.speed += racket.maxSpeed;
-        } else {
-            racket.y = targetY;
-        }
-    } else if(racket.y > targetY) {
-        if (racket.y <= racket.halfSize) {
-            racket.y = racket.halfSize;
-        } else if (racket.y - targetY > (racket.maxSpeed * timeDiff) / 1000) {
-            racket.y -= (racket.maxSpeed * timeDiff) / 1000;
-            racket.speed -= racket.maxSpeed;
-        } else {
-            racket.y = targetY;
-        }
-    }
-}
-
-bool collidesWithRacket(System::Racket racket) {
-    if (pip.y > racket.y + racket.halfSize || pip.y < racket.y - racket.halfSize)
-        return false;
-    
-    switch(racket.position) {
-        case System::RIGHT:
-            if (pip.x < width - System::Racket::width)
-                return false;
-            break;
-        case System::LEFT:
-            if (pip.x > System::Racket::width)
-                return false;
-        default:
-            break;
-    }
-    
-    pip.ySpeed += racket.speed;
-    return true;
-
-}
-
-void recalculateBall(int timeDiff) {
-    pip.x += (pip.xSpeed * timeDiff)/1000;
-    pip.y += (pip.ySpeed * timeDiff)/1000;
-    
-    if (pip.y < System::Pip::radius || pip.y > height - System::Pip::radius) {
-        if (pip.y < System::Pip::radius) pip.y = System::Pip::radius;
-        if (pip.y > height - System::Pip::radius) pip.y = height - System::Pip::radius;
-        pip.ySpeed = -pip.ySpeed;
-    }
-    
-    if (collidesWithRacket(racket1) || collidesWithRacket(racket2)) {
-        if (pip.x < System::Racket::width + System::Pip::radius) pip.x = System::Racket::width + System::Pip::radius;
-        if (pip.x > width - System::Racket::width - System::Pip::radius) pip.x = width - System::Racket::width - System::Pip::radius;
-        pip.xSpeed = -pip.xSpeed;
-    } else if (pip.x < System::Pip::radius || pip.x > width - System::Pip::radius) {
-        if (pip.x < System::Pip::radius) pip.x = System::Pip::radius;
-        if (pip.x > width - System::Pip::radius) pip.x = width - System::Pip::radius;
-        pip.x = width/2;
-        pip.y = height/2;
-        pip.randomiseSpeed();
-    }
-}
 
 int main(void) {
     srand(time(NULL));
@@ -218,18 +122,15 @@ int main(void) {
         
         int newTime = floor(glfwGetTime() * 1000);
         if (newTime - lastTime > 10) {
-            recalculateBall(newTime - lastTime);
-
-            moveRacketToY(racket1, newTime - lastTime);
-            moveRacketToY(racket2, newTime - lastTime);
-            
+            sys.recalculatePip(newTime - lastTime);
+            sys.updateRackets(newTime - lastTime);
             lastTime = newTime;
         }
         
         drawNet();
         drawBall();
-        drawRacket(racket1);
-        drawRacket(racket2);
+        drawRacket(sys.getRacket1());
+        drawRacket(sys.getRacket2());
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
