@@ -105,7 +105,7 @@ void System::updateRacket(Racket & racket, int timeDiff) {
 }
 
 void System::updateRackets(int timeDiff) {
-    updateRacket(racket1, timeDiff);
+    //updateRacket(racket1, timeDiff);
     updateRacket(racket2, timeDiff);
 }
 
@@ -130,6 +130,26 @@ System::Racket System::getRacket1() {
 
 System::Racket System::getRacket2() {
     return racket2;
+}
+
+void System::moveRacketUp() {
+    int targetY = racket1.y + 30;
+    
+    if (height - racket1.y <= racket1.halfSize) {
+        racket1.y = height - racket1.halfSize;
+    } else {
+        racket1.y = targetY;
+    }
+}
+
+void System::moveRacketDown() {
+    int targetY = racket1.y - 30;
+    
+    if (racket1.y <= racket1.halfSize) {
+        racket1.y = racket1.halfSize;
+    } else {
+        racket1.y = targetY;
+    }
 }
 
 const int System::Racket::maxSpeed = 200;
