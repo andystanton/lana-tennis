@@ -54,6 +54,8 @@ public:
     void recalculatePip(int timeDiff);
     void updateRackets(int timeDiff);
     void updateRacket(Racket & racket, int timeDiff);
+    void moveRacketUp();
+    void moveRacketDown();
 
     int guessWherePipIsGoing();
     bool collidesWithRacket(Racket racket);
