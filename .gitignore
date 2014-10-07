@@ -14,3 +14,4 @@ lana-tennis
 *.xcodeproj
 *.build
 Debug
+.idea
